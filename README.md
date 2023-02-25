@@ -14,7 +14,7 @@ Repo para código del proyecto de Inteligencia Artificial
 - [Ingreso de textos en ingles y en espaniol con Python](https://youtube.com/watch?v=ufv3Ngl9zpo&feature=share)
 - [Libreria de NPL Spacy](https://spacy.io)
 - [Diapositivas del anteproyecto](https://drive.google.com/drive/folders/1mH--RGAU0tZZCdCsI8ZMFzx66Cj7p5N4?usp=sharing)
-- [Organización inicial]()
+- [Organización inicial](https://drive.google.com/drive/folders/1mH--RGAU0tZZCdCsI8ZMFzx66Cj7p5N4?usp=sharing)
 
 ---
 ## Observaciones del profesor durante la expo del Anteproyecto
