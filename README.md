@@ -1,6 +1,8 @@
 # Talk-a-Filter-Proyecto-IA-
 Repo para código del proyecto de Inteligencia Artificial
 
+# NO FUNCIONA CON LA VERSION 3.11.2 DE PYTHON
+
 ---
 ## Notas importantes
 
