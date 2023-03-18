@@ -4,4 +4,4 @@ Mockups para Python creados con ChatGPT para el Reto propuesto de la materia.
 
 ## Propuesta para presentación
 
-Realizar el mockup funcional de la aplicación final solamente con lo solicitado a ChatGPT
+Realizar **gran parte del __mockup__** funcional de la aplicación final solamente con lo solicitado a ChatGPT
