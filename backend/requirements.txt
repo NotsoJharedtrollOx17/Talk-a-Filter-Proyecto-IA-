@@ -3,3 +3,4 @@ praw==7.7.0
 spacy==3.5.0
 spacy-legacy==3.0.12
 spacy-loggers==1.0.4
+flask
