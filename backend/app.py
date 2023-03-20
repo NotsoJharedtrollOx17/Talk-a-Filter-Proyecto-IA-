@@ -1,4 +1,7 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify
+from flask_cors import CORS
+
+
 import praw
 import spacy
 import csv
@@ -9,6 +12,7 @@ CONTENT_LIMIT = 5
 
 #Flask app entry point
 app = Flask(__name__)
+CORS(app)
 
 # Load spacy model and custom foul language database
 nlp = spacy.load(LANGUAGE_MODEL)
@@ -59,7 +63,7 @@ def filter_post(post):
         post_dict['comments'].append(comment_dict)
     return post_dict
 
-@app.route('/posts/<subreddit>', methods=['GET'])
+@app.route('/posts/<subreddit>', )
 def get_posts(subreddit):
     posts = []
     subreddit_obj = reddit.subreddit(subreddit)

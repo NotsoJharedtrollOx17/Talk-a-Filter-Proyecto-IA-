@@ -1,78 +1,56 @@
-import React, { useState, useEffect } from "react";
-import '../Stylings/App.css'
+import React, { useState } from 'react';
 
-const App = () => {
-  const [subreddit, setSubreddit] = useState("");
+function App() {
   const [posts, setPosts] = useState([]);
+  const [subreddit, setSubreddit] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  const fetchPosts = async () => {
-    const response = await fetch(`/api/posts?subreddit=${subreddit}`);
-    const data = await response.json();
-    setPosts(data);
+  const fetchPosts = () => {
+    fetch(`http://localhost:5000/posts/${subreddit}`)
+      .then((res) => res.json())
+      .then((data) => {
+        setPosts(data);
+      })
+      .catch((error) => console.log(error));
   };
 
   const clearPosts = () => {
     setPosts([]);
   };
-
+  
   return (
     <div>
-      <select value={subreddit} onChange={(e) => setSubreddit(e.target.value)}>
-        <option value="">Select a subreddit</option>
-        <option value="aww">aww</option>
-        <option value="gifs">gifs</option>
-        <option value="mildlyinteresting">mildlyinteresting</option>
-        <option value="pics">pics</option>
-        <option value="todayilearned">todayilearned</option>
-      </select>
-      <button onClick={fetchPosts}>Fetch posts</button>
-      <button onClick={clearPosts}>Clear posts</button>
-      {posts.map((post) => (
-        <Post key={post.id} post={post} />
-      ))}
+      <h1>Reddit Posts</h1>
+      <input
+        type="text"
+        placeholder="Enter subreddit name"
+        value={subreddit}
+        onChange={(e) => setSubreddit(e.target.value)}
+      />
+      <button onClick={fetchPosts}>Fetch Posts</button>
+      <button onClick={clearPosts}>Clear Posts</button>
+      <ul>
+        {posts.map((post) => (
+          <li key={post.id}>
+            <h3>{post.title}</h3>
+            <p>{post.text}</p>
+            <p>Author: {post.author}</p>
+            <p>Score: {post.score}</p>
+            <a href={post.url}>Link to post</a>
+            <ul>
+              {post.comments.map((comment) => (
+                <li key={comment.id}>
+                  <p>{comment.text}</p>
+                  <p>Author: {comment.author}</p>
+                  <p>Score: {comment.score}</p>
+                </li>
+              ))}
+            </ul>
+          </li>
+        ))}
+      </ul>
     </div>
   );
-};
-
-const Post = ({ post }) => {
-  const [comments, setComments] = useState([]);
-
-  useEffect(() => {
-    const fetchComments = async () => {
-      const response = await fetch(`/api/comments?post_id=${post.id}`);
-      const data = await response.json();
-      setComments(data);
-    };
-
-    fetchComments();
-  }, [post.id]);
-
-  return (
-    <div>
-      <h2>{post.title}</h2>
-      <p>Author: {post.author}</p>
-      <p>Score: {post.score}</p>
-      <p>
-        <a href={post.url}>Link</a>
-      </p>
-      <p>{post.text}</p>
-      <h3>Comments:</h3>
-      {comments.map((comment) => (
-        <Comment key={comment.id} comment={comment} />
-      ))}
-    </div>
-  );
-};
-
-const Comment = ({ comment }) => {
-  return (
-    <div>
-      <p>Author: {comment.author}</p>
-      <p>Score: {comment.score}</p>
-      <p>{comment.text}</p>
-    </div>
-  );
-};
+}
 
 export default App;
-
