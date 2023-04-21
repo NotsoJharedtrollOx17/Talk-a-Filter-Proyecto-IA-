@@ -1,8 +1,8 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
 
-
 import praw
+import openai
 import spacy
 import csv
 
@@ -22,6 +22,9 @@ with open(DATASET, "r") as f:
     for row in reader:
         foul_words.append(row[0])
 
+# Load the OpenAI API key
+openai.api.key = "API_KEY" # TODO agregar 
+
 # Set up Reddit API
 reddit = praw.Reddit(
     client_id = 'UpgNKOmI2LmyAUv0jrNnpQ',
@@ -31,6 +34,7 @@ reddit = praw.Reddit(
     user_agent = 'Talk-a-Filter Personal Script' #nombre de la app registrada dentro del usuario de Reddit
 )
 
+# TODO agregar el codigo generado por ChatGPT en Proyecto Inteligencia Artificial
 # Define function to censor text based on custom foul language database
 def filter_text(text):
     doc = nlp(text)
@@ -69,7 +73,8 @@ def get_posts(subreddit):
     subreddit_obj = reddit.subreddit(subreddit)
 
     for post in subreddit_obj.hot(limit=CONTENT_LIMIT):
-        posts.append(filter_post(post))
+        if not submission.over_18:  # Check if the post is marked as NSFW
+            posts.append(filter_post(post))
     
     return jsonify(posts)
 
