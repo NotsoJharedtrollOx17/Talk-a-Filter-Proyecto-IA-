@@ -5,3 +5,4 @@ spacy-legacy==3.0.12
 spacy-loggers==1.0.4
 flask
 flask_cors
+openai

@@ -1,29 +1,28 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
+from gpt4free import t3nsor
+# * CONSIDERAR: https://github.com/xtekky/gpt4free/blob/main/quora/README.md
 
 import praw
-import openai
 import spacy
 import csv
 
-LANGUAGE_MODEL = "en_core_web_sm"
+SPACY_LANGUAGE_MODEL = "en_core_web_sm"
 DATASET = "bad-words.csv"
-CONTENT_LIMIT = 5
+OPENAI_WORKAROUND_API_MODEL = "gpt-3.5-turbo"
+CONTENT_LIMIT = 2
 
 #Flask app entry point
 app = Flask(__name__)
 CORS(app)
 
 # Load spacy model and custom foul language database
-nlp = spacy.load(LANGUAGE_MODEL)
+nlp = spacy.load(SPACY_LANGUAGE_MODEL)
 foul_words = []
 with open(DATASET, "r") as f:
     reader = csv.reader(f, delimiter="\n")
     for row in reader:
         foul_words.append(row[0])
-
-# Load the OpenAI API key
-openai.api.key = "API_KEY" # TODO agregar 
 
 # Set up Reddit API
 reddit = praw.Reddit(
@@ -34,16 +33,39 @@ reddit = praw.Reddit(
     user_agent = 'Talk-a-Filter Personal Script' #nombre de la app registrada dentro del usuario de Reddit
 )
 
-# TODO agregar el codigo generado por ChatGPT en Proyecto Inteligencia Artificial
 # Define function to censor text based on custom foul language database
+# TODO arreglar filtrado y entrenar modelo personalizado para detectar palabras ofensivas y analisis de sentimiento del mensaje para reddit
+''''
+* https://huggingface.co/docs/transformers/main_classes/pipelines
+* https://towardsdatascience.com/teach-an-ai-model-to-write-like-shakespeare-for-free-a9e6a307139
+* https://neptune.ai/blog/how-to-use-google-colab-for-deep-learning-complete-tutorial
+* https://huggingface.co/blog/sentiment-analysis-python
+* https://towardsdatascience.com/scraping-reddit-data-1c0af3040768
+* https://www.geeksforgeeks.org/scraping-reddit-using-python/
+'''
 def filter_text(text):
     doc = nlp(text)
-    censored_text = ""
+    sentiment = ''
+    has_offensive_text = False
+
     for token in doc:
         if token.text.lower() in foul_words:
-            censored_text += "*"*len(token.text) + token.whitespace_
-        else:
-            censored_text += token.text + token.whitespace_
+            has_offensive_text = True
+            break
+
+    if has_offensive_text:
+       censored_text = familyfriendly_text(text, sentiment) 
+       return censored_text
+
+    return text
+
+def familyfriendly_text(text, sentiment):
+    prompt = f"Please rewrite the following text to not include any foul language:\n\n{text}\n\nCensored text:"
+    response = t3nsor.Completion.create(
+        prompt = prompt,
+        messages = []
+    )
+    censored_text = response.completion.choices[0].text
     return censored_text
 
 def filter_post(post):
@@ -73,7 +95,7 @@ def get_posts(subreddit):
     subreddit_obj = reddit.subreddit(subreddit)
 
     for post in subreddit_obj.hot(limit=CONTENT_LIMIT):
-        if not submission.over_18:  # Check if the post is marked as NSFW
+        if not post.over_18:  # Check if the post is marked as NSFW
             posts.append(filter_post(post))
     
     return jsonify(posts)
