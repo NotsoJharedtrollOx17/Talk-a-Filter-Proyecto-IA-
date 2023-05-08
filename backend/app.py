@@ -8,7 +8,7 @@ import spacy
 import csv
 
 SPACY_LANGUAGE_MODEL = "en_core_web_sm"
-DATASET = "bad-words.csv"
+DATASET = "./data/bad-words.csv"
 OPENAI_WORKAROUND_API_MODEL = "gpt-3.5-turbo"
 CONTENT_LIMIT = 2
 
