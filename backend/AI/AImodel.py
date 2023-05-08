@@ -28,10 +28,12 @@ import numpy
 import random
 
 text_to_text_tokenizer = T5Tokenizer.from_pretrained("google/flan-t5-base")
-text_to_text_model = T5ForConditionalGeneration.from_pretrained {
+text_to_text_model = T5ForConditionalGeneration.from_pretrained(
     "gooogle/fraln-t5",
     devicemap = "auto"
-}
+)
+
+text = "Fucking loss porn in that post man!"
 
 input_text = r"Rewrite the following text for it to not contain foul language: {text}"
 input_ids = text_to_text_tokenizer(input_text, return_tensors="pt", padding=True).input_ids.to("GPU_OF_COLAB_SERVER")
@@ -57,7 +59,6 @@ def main():
         args = training_arguments,
         train_dataset = ,
         eval_dataset = ,
-        
     )
 
     trainer.train()

@@ -5,8 +5,8 @@ import re
 
 SPACY_LANGUAGE_MODEL = "en_core_web_sm"
 WALLSTREETBETS = "wallstreetbets"
-DATASET = "./data/bad-words.csv"
-GENERATED_DATASET = "./data/scraped-content.csv"
+DATASET = "./data-files/csv/bad-words.csv"
+GENERATED_DATASET = "./data-files/csv/scraped-content.csv"
 CONTENT_LIMIT = 5
 
 # Set up Reddit API
