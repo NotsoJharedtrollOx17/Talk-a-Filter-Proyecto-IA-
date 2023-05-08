@@ -1,27 +1,143 @@
-from datasets import load_dataset, Dataset
-from transformers import T5Tokenizer
+import praw
+import spacy
+import csv
+import re
 
-DATASET = "my_data.csv"
-TOKEN_MODEL = "google/flan-t5-base"
+'''
+REVISAR PARA REFERENCIA
+    https://www.flowrite.com/blog/dataset-engineering-llm-finetuning
+    https://www.reddit.com/r/redditdev/comments/hhp8cw/praw_how_can_i_determine_if_a_submission_is_a/
+    https://colab.research.google.com/drive/1Ewhy1yADF0gqHBuZXr6kOpusm86yc5Nr#scrollTo=tUBCgyF3IWzA
+    https://huggingface.co/datasets/argilla/databricks-dolly-15k-multilingual
+    https://huggingface.co/docs/datasets/v1.4.0/loading_datasets.html
+'''
 
-# Load the dataset
-dataset = load_dataset("csv", data_files=DATASET)
+SPACY_LANGUAGE_MODEL = "en_core_web_sm"
+WALLSTREETBETS = "wallstreetbets"
+DATASET = "bad-words.csv"
+CONTENT_LIMIT = 20
 
-# Load the tokenizer
-tokenizer = T5Tokenizer.from_pretrained(TOKEN_MODEL)
+# Set up Reddit API
+reddit = praw.Reddit(
+    client_id = 'UpgNKOmI2LmyAUv0jrNnpQ',
+    client_secret = '6UUvZHlDy2XgDy2IINR5NwG6wF0ubw',
+    username = 'talkafilterUSER2', # talkafilterUSER1 OR talkafilterUSER2
+    password = 'Expereince for AI', #NO CAMBIAR
+    user_agent = 'Talk-a-Filter Personal Script' #nombre de la app registrada dentro del usuario de Reddit
+)
+subreddit = reddit.subreddit(WALLSTREETBETS)
 
-# Define the preprocessing function
-def preprocess_data(example):
-    # Tokenize the text and map the labels to integers
-    tokenized = tokenizer(example["text"], truncation=True, padding="max_length")
-    label_map = {"OFFENSIVE": 1, "NON OFFENSIVE": 0}
-    label_id = label_map[example["label"]]
-    # Return the tokenized input and label ID
-    return {"input_ids": tokenized["input_ids"], "attention_mask": tokenized["attention_mask"], "labels": label_id}
+# Load spacy model and custom foul language database
+language_model_engine = spacy.load(SPACY_LANGUAGE_MODEL)
 
-# Apply the preprocessing function to the dataset
-preprocessed_dataset = dataset.map(preprocess_data, batched=True)
+text_dataframe = ''
+foul_words_dataset = []
+detected_foul_words = []
 
-# saving the preprocessed dataset to disk
-dataset_to_save = Dataset.from_dict(preprocessed_dataset)
-dataset_to_save.save_to_disk("wallstreetbet_posts_comments")
+def load_offensive_words_dataset():
+    with open(DATASET, "r") as f:
+        reader = csv.reader(f, delimiter="\n")
+        for row in reader:
+            foul_words_dataset.append(row[0])
+
+def write_custom_instruction(element):
+    detected_foul_words = element
+    instruction_template = f'The following text was flagged because it has the following offensive words: ['
+
+    for word in detected_foul_words:
+        instruction_template += f'{word}, ' 
+
+    instruction_template = instruction_template + '], rewrite it in such a way that it does not include any of the provided words or any offensive context: '
+    
+    return instruction_template
+
+def has_offensive_text(text):
+    tokenized_text = language_model_engine(text)
+    has_offensive_text = False
+
+    # ? it has offensive text
+    for token in tokenized_text:
+        if token.text.lower() in foul_words_dataset:
+            has_offensive_text = True
+            detected_foul_words.append(token.text.lower())
+            continue
+
+    return has_offensive_text
+
+def display_scraped_items(items):
+    print("\tScraped text content:")
+    for index, item in enumerate(items):
+        print(f'No. {index}:\n Instruction: {item[0]}\n Text to Rewrite: {item[1]}\n')
+
+def get_posts():
+    print("get_posts")
+    print("\tBEGIN\t\n")
+    posts = subreddit.top(time_filter='year', limit=CONTENT_LIMIT)
+    dataset = []
+
+    # * iterating every submission on the TOAT of WSB
+    for submission in posts:
+        post_dataset_entry = {}
+        comment_dataset_entry = {}
+        
+        # ? is text-based?
+        if not submission.is_self:
+                    # * checks for text in the comments...
+            for comment in submission.comments[:CONTENT_LIMIT]:
+                if isinstance(comment, praw.models.MoreComments):
+                  continue
+                if comment.body != '[deleted]' or comment.body != '[removed]': # exclude deleted or removed comments
+                    if comment.body_html is not None:
+                        comment.body_html = ''
+
+                    if not re.match(r'^https?:\/\/.*[\r\n]*', comment.body): # exclude comments with links
+                        if has_offensive_text(comment.body):
+                            curated_comment = comment.body.replace('\n', ' ')
+                            comment_dataset_entry = [write_custom_instruction(detected_foul_words), curated_comment]
+                            dataset.append(comment_dataset_entry)
+                            detected_foul_words.clear()
+
+            continue
+
+            # ? if the content does not have any URLs, or wasn't deleted/removed...
+        if submission.selftext != '[deleted]' or submission.selftext != '[removed]': # exclude deleted or removed comments
+            if submission.selftext_html is not None:
+                submission.selfttext_html = ''
+
+            if not re.match(r'^https?:\/\/.*[\r\n]*', submission.selftext): # exclude comments with links
+                    if has_offensive_text(submission.selftext):
+                        post_dataset_entry = [write_custom_instruction(detected_foul_words), submission.selftext]
+                        dataset.append(post_dataset_entry)
+                        detected_foul_words.clear()
+
+            # * checks for text in the comments...
+            for comment in submission.comments[:CONTENT_LIMIT]:
+                if isinstance(comment, praw.models.MoreComments):
+                  continue
+
+                if comment.body != '[deleted]' or comment.body != '[removed]': # exclude deleted or removed comments
+                    if comment.body_html is not None:
+                        comment.body_html = ''
+
+                    if not re.match(r'^https?:\/\/.*[\r\n]*', comment.body): # exclude comments with links
+                        if has_offensive_text(comment.body):
+                            curated_comment = comment.body.replace('\n', ' ')
+                            comment_dataset_entry = [write_custom_instruction(detected_foul_words), curated_comment]
+                            dataset.append(comment_dataset_entry)
+                            detected_foul_words.clear()
+
+            post_dataset_entry.clear()
+            comment_dataset_entry.clear()    
+
+
+    display_scraped_items(dataset)
+
+    print("\tEND\t")
+
+def main():
+    load_offensive_words_dataset()
+    print("WSB Comment Scraper\n")
+    get_posts()
+
+if __name__ == '__main__':
+    main()
