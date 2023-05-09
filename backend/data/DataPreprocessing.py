@@ -1,12 +1,12 @@
 from datasets import load_dataset
 from transformers import AutoTokenizer
 
-SCRAPED_DATA = './data-files/csv/scraped-content.csv'
+CURATED_DATA = './data-files/csv/curated-content.csv'
 HUGGINGFACE_MODEL = "declare-lab/flan-alpaca-large"
-TOKENIZED_DATASET = './data-files/processed-dataset/tokenized-scraped-content'
+TOKENIZED_DATASET = './data-files/processed-dataset/tokenized-curated-content'
 
 # Load the dataset from the CSV file
-dataset = load_dataset('csv', data_files=SCRAPED_DATA)
+dataset = load_dataset('csv', data_files=CURATED_DATA)
 
 # Load the tokenizer
 tokenizer = AutoTokenizer.from_pretrained(HUGGINGFACE_MODEL)

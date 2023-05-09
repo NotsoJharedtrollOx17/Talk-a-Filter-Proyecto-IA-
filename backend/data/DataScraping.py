@@ -1,5 +1,6 @@
 import praw
 import spacy
+import time
 import csv
 import re
 
@@ -69,7 +70,7 @@ def get_posts():
     dataset = []
 
     # * iterating every submission on the TOAT of WSB
-    for submission in posts:
+    for (i, submission) in enumerate(posts, start=1):
         post_dataset_entry = {}
         comment_dataset_entry = {}
         
@@ -120,7 +121,11 @@ def get_posts():
                             detected_foul_words.clear()
 
             post_dataset_entry.clear()
-            comment_dataset_entry.clear()    
+            comment_dataset_entry.clear()
+
+            if i % 10 == 0:
+                print(f"TIMEOUT {i}\n")
+                time.sleep(2.5)
 
     display_scraped_items(dataset)
 
