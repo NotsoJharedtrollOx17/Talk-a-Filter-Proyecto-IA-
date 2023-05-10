@@ -1,21 +1,14 @@
 import praw
 import spacy
+import time
 import csv
 import re
 
-'''
-REVISAR PARA REFERENCIA
-    https://www.flowrite.com/blog/dataset-engineering-llm-finetuning
-    https://www.reddit.com/r/redditdev/comments/hhp8cw/praw_how_can_i_determine_if_a_submission_is_a/
-    https://colab.research.google.com/drive/1Ewhy1yADF0gqHBuZXr6kOpusm86yc5Nr#scrollTo=tUBCgyF3IWzA
-    https://huggingface.co/datasets/argilla/databricks-dolly-15k-multilingual
-    https://huggingface.co/docs/datasets/v1.4.0/loading_datasets.html
-'''
-
 SPACY_LANGUAGE_MODEL = "en_core_web_sm"
 WALLSTREETBETS = "wallstreetbets"
-DATASET = "bad-words.csv"
-CONTENT_LIMIT = 20
+DATASET = "./data-files/csv/bad-words.csv"
+GENERATED_DATASET = "./data-files/csv/scraped-content.csv"
+CONTENT_LIMIT = 5
 
 # Set up Reddit API
 reddit = praw.Reddit(
@@ -39,6 +32,7 @@ def load_offensive_words_dataset():
         reader = csv.reader(f, delimiter="\n")
         for row in reader:
             foul_words_dataset.append(row[0])
+        f.close()
 
 def write_custom_instruction(element):
     detected_foul_words = element
@@ -76,7 +70,7 @@ def get_posts():
     dataset = []
 
     # * iterating every submission on the TOAT of WSB
-    for submission in posts:
+    for (i, submission) in enumerate(posts, start=1):
         post_dataset_entry = {}
         comment_dataset_entry = {}
         
@@ -100,7 +94,7 @@ def get_posts():
             continue
 
             # ? if the content does not have any URLs, or wasn't deleted/removed...
-        if submission.selftext != '[deleted]' or submission.selftext != '[removed]': # exclude deleted or removed comments
+        if submission.selftext != '[deleted]' or submission.selftext != '[removed]': # exclude deleted or removed posts
             if submission.selftext_html is not None:
                 submission.selfttext_html = ''
 
@@ -127,10 +121,21 @@ def get_posts():
                             detected_foul_words.clear()
 
             post_dataset_entry.clear()
-            comment_dataset_entry.clear()    
+            comment_dataset_entry.clear()
 
+            if i % 10 == 0:
+                print(f"TIMEOUT {i}\n")
+                time.sleep(2.5)
 
     display_scraped_items(dataset)
+
+    print(F"\nSaving data to {GENERATED_DATASET}\n")
+    with open(GENERATED_DATASET, mode='w', newline='') as data_file:
+        writer = csv.writer(data_file, lineterminator='\n')
+        writer.writerow(["instruction", "input"])
+        writer.writerows(dataset)
+        data_file.close()
+    print(f"\nDataset generated to {GENERATED_DATASET}\n")
 
     print("\tEND\t")
 

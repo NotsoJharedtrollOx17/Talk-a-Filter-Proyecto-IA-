@@ -1,6 +1,6 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
-from gpt4free import t3nsor
+from gpt4free import you
 # * CONSIDERAR: https://github.com/xtekky/gpt4free/blob/main/quora/README.md
 
 import praw
@@ -8,7 +8,7 @@ import spacy
 import csv
 
 SPACY_LANGUAGE_MODEL = "en_core_web_sm"
-DATASET = "bad-words.csv"
+DATASET = "./data/data-files/csv/bad-words.csv"
 OPENAI_WORKAROUND_API_MODEL = "gpt-3.5-turbo"
 CONTENT_LIMIT = 2
 
@@ -45,7 +45,6 @@ reddit = praw.Reddit(
 '''
 def filter_text(text):
     doc = nlp(text)
-    sentiment = ''
     has_offensive_text = False
 
     for token in doc:
@@ -54,18 +53,18 @@ def filter_text(text):
             break
 
     if has_offensive_text:
-       censored_text = familyfriendly_text(text, sentiment) 
+       censored_text = familyfriendly_text(text) 
        return censored_text
 
     return text
 
-def familyfriendly_text(text, sentiment):
+def familyfriendly_text(text):
     prompt = f"Please rewrite the following text to not include any foul language:\n\n{text}\n\nCensored text:"
-    response = t3nsor.Completion.create(
+    response = you.Completion.create(
         prompt = prompt,
         messages = []
     )
-    censored_text = response.completion.choices[0].text
+    censored_text = response["reponse"]
     return censored_text
 
 def filter_post(post):
