@@ -1,4 +1,5 @@
 from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
+import pandas as pd
 import pandas
 import time
 import csv
@@ -12,13 +13,12 @@ data_curator = pipeline('text2text-generation', model=HUGGINGFACE_MODEL, tokeniz
 scraped_data_entries = []
 curated_dataset = []
 
-import pandas as pd
 
 def load_offensive_words_dataset():
     scraped_data_df = pd.read_csv(SCRAPED_DATA)
     for index, row in scraped_data_df.iterrows():
-        instruction = row['Instruction'].strip()
-        input = row['Input'].strip()
+        instruction = row['instruction'].strip()
+        input = row['input'].strip()
         scraped_data_entries.append((instruction, input))
 
 def generate_text(prompt):
@@ -36,8 +36,10 @@ def generate_dataset_output():
         prompt = instruction + input
         result = generate_text(prompt)
         output = result[0] 
-        curated_dataset.append([instruction, input, output['generated_text']])
-        print(f"No. {i}:\n\tprompt: {prompt}\n\toutput: {output['generated_text']}\n")
+        text = f"Below is an instruction that describes a task. Write a response that appropriately completes the request. ### Instruction: {instruction} ### Input: {input} ### Response: {output['generated_text']}"
+
+        curated_dataset.append([instruction, input, output['generated_text'], text])
+        print(f"No. {i}:\n\tprompt: {prompt}\n\toutput: {output['generated_text']}\n\ttext: {text}")
         
         if i % 10 == 0:
             print(f"TIMEOUT {i}\n")
@@ -46,7 +48,7 @@ def generate_dataset_output():
     print(F"\nSaving data to {CURATED_DATA}\n")
     with open(CURATED_DATA, mode='w', newline='') as data_file:
         writer = csv.writer(data_file, lineterminator='\n')
-        writer.writerow(["instruction", "input", "output"])
+        writer.writerow(["instruction", "input", "output", "text"])
         writer.writerows(curated_dataset)
         data_file.close()
     print(f"\nDataset generated to {CURATED_DATA}\n")

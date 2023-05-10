@@ -132,7 +132,7 @@ def get_posts():
     print(F"\nSaving data to {GENERATED_DATASET}\n")
     with open(GENERATED_DATASET, mode='w', newline='') as data_file:
         writer = csv.writer(data_file, lineterminator='\n')
-        writer.writerow(["Instruction", "Input"])
+        writer.writerow(["instruction", "input"])
         writer.writerows(dataset)
         data_file.close()
     print(f"\nDataset generated to {GENERATED_DATASET}\n")
