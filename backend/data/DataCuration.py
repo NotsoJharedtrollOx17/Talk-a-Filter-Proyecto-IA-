@@ -1,42 +1,51 @@
-from transformers import pipeline
+from transformers import pipeline, AutoTokenizer, AutoModelForSeq2SeqLM
+import pandas
 import time
 import csv
 
-SCRAPED_DATA = './data-files/csv/scraped-content.csv'
-CURATED_DATA = './data-files/csv/curated-content.csv'
+SCRAPED_DATA = './scraped-content.csv'
+CURATED_DATA = './curated-content.csv'
 HUGGINGFACE_MODEL = "declare-lab/flan-alpaca-large"
 
-data_curator = pipeline('text-generation' ,model=HUGGINGFACE_MODEL)
+tokenizer = AutoTokenizer.from_pretrained(HUGGINGFACE_MODEL)
+data_curator = pipeline('text2text-generation', model=HUGGINGFACE_MODEL, tokenizer=tokenizer)
 scraped_data_entries = []
 curated_dataset = []
 
-def load_offensive_words_dataset():
-    with open(SCRAPED_DATA, 'r') as file:
-        reader = csv.reader(file, delimiter='\n')
-        for row in reader:
-            scraped_data_entries.append(row[0])
-        file.close()
+import pandas as pd
 
-    scraped_data_entries.remove(["Instruction", "Input"])
+def load_offensive_words_dataset():
+    scraped_data_df = pd.read_csv(SCRAPED_DATA)
+    for index, row in scraped_data_df.iterrows():
+        instruction = row['Instruction'].strip()
+        input = row['Input'].strip()
+        scraped_data_entries.append((instruction, input))
+
+def generate_text(prompt):
+    output = data_curator(prompt, max_length=128, do_sample=True)
+
+    return output
 
 def generate_dataset_output():
+    load_offensive_words_dataset()
+
     print("generate_dataset_output")
     print("\tBEGIN\t\n")
     for (i, item) in enumerate(scraped_data_entries, start=1):
-        instruction = item[0]
-        input = item[1]
+        instruction, input = item 
         prompt = instruction + input
-        output = data_curator(prompt, max_length=150, do_sample=True)
-        curated_dataset.append([instruction, input, output])
-        print(f"No. {i}:\n\tprompt: {instruction}\n\toutput: {output}\n")
+        result = generate_text(prompt)
+        output = result[0] 
+        curated_dataset.append([instruction, input, output['generated_text']])
+        print(f"No. {i}:\n\tprompt: {prompt}\n\toutput: {output['generated_text']}\n")
         
         if i % 10 == 0:
             print(f"TIMEOUT {i}\n")
-            time.sleep(2.5)
+            time.sleep(0.5)
 
     print(F"\nSaving data to {CURATED_DATA}\n")
     with open(CURATED_DATA, mode='w', newline='') as data_file:
-        writer = csv.writer(data_file)
+        writer = csv.writer(data_file, lineterminator='\n')
         writer.writerow(["instruction", "input", "output"])
         writer.writerows(curated_dataset)
         data_file.close()
