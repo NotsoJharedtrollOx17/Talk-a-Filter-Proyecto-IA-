@@ -1,21 +1,23 @@
 from flask import Flask, jsonify
 from flask_cors import CORS
-
+from gpt4free import you
+# * CONSIDERAR: https://github.com/xtekky/gpt4free/blob/main/quora/README.md
 
 import praw
 import spacy
 import csv
 
-LANGUAGE_MODEL = "en_core_web_sm"
-DATASET = "bad-words.csv"
-CONTENT_LIMIT = 5
+SPACY_LANGUAGE_MODEL = "en_core_web_sm"
+DATASET = "./data/data-files/csv/bad-words.csv"
+OPENAI_WORKAROUND_API_MODEL = "gpt-3.5-turbo"
+CONTENT_LIMIT = 2
 
 #Flask app entry point
 app = Flask(__name__)
 CORS(app)
 
 # Load spacy model and custom foul language database
-nlp = spacy.load(LANGUAGE_MODEL)
+nlp = spacy.load(SPACY_LANGUAGE_MODEL)
 foul_words = []
 with open(DATASET, "r") as f:
     reader = csv.reader(f, delimiter="\n")
@@ -32,14 +34,37 @@ reddit = praw.Reddit(
 )
 
 # Define function to censor text based on custom foul language database
+# TODO arreglar filtrado y entrenar modelo personalizado para detectar palabras ofensivas y analisis de sentimiento del mensaje para reddit
+''''
+* https://huggingface.co/docs/transformers/main_classes/pipelines
+* https://towardsdatascience.com/teach-an-ai-model-to-write-like-shakespeare-for-free-a9e6a307139
+* https://neptune.ai/blog/how-to-use-google-colab-for-deep-learning-complete-tutorial
+* https://huggingface.co/blog/sentiment-analysis-python
+* https://towardsdatascience.com/scraping-reddit-data-1c0af3040768
+* https://www.geeksforgeeks.org/scraping-reddit-using-python/
+'''
 def filter_text(text):
     doc = nlp(text)
-    censored_text = ""
+    has_offensive_text = False
+
     for token in doc:
         if token.text.lower() in foul_words:
-            censored_text += "*"*len(token.text) + token.whitespace_
-        else:
-            censored_text += token.text + token.whitespace_
+            has_offensive_text = True
+            break
+
+    if has_offensive_text:
+       censored_text = familyfriendly_text(text) 
+       return censored_text
+
+    return text
+
+def familyfriendly_text(text):
+    prompt = f"Please rewrite the following text to not include any foul language:\n\n{text}\n\nCensored text:"
+    response = you.Completion.create(
+        prompt = prompt,
+        messages = []
+    )
+    censored_text = response["reponse"]
     return censored_text
 
 def filter_post(post):
@@ -69,7 +94,8 @@ def get_posts(subreddit):
     subreddit_obj = reddit.subreddit(subreddit)
 
     for post in subreddit_obj.hot(limit=CONTENT_LIMIT):
-        posts.append(filter_post(post))
+        if not post.over_18:  # Check if the post is marked as NSFW
+            posts.append(filter_post(post))
     
     return jsonify(posts)
 
