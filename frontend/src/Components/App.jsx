@@ -33,7 +33,7 @@ function App() {
   return (
     <div className='App'>
       {!submitted ? (
-        <div>
+        <div className='SearchScreen'>
           <div className='Title'>
             <h2>Reddit Posts via </h2>
             <h1>Talk-a-Filter</h1>
@@ -67,27 +67,11 @@ function App() {
                     <img src='../img/logo_TECT.png' alt='' />
                     <p>TALK A FILTER</p>
                   </div>
-                  <div className='search_bar'>
-                    <input type='text' placeholder='Search' />
-                  </div>
                 </div>
                 <div className='right'>
                   <ul>
                     <li>
-                      <i className='fa-solid fa-house'></i>
-                      <a href='#'>HOME</a>
-                    </li>
-                    <li>
-                      <i className='fa-regular fa-comment-dots'></i>
-                      <a href='#'>COMMENTS</a>
-                    </li>
-                    <li>
-                      <i className='fa-regular fa-bell'></i>
-                      <a href='#'>NOTIFICATIONS</a>
-                    </li>
-                    <li>
-                      <i className='fa-regular fa-plus'></i>
-                      <a href='#'>MORE</a>
+                      <a href='#'><h6>Equipo 2</h6></a>
                     </li>
                   </ul>
                 </div>
@@ -102,8 +86,8 @@ function App() {
                   <div className='user'>
                     <div className='avatar' style={{ backgroundImage: 'url(img/icon.jpg)' }}></div>
                     <div className='Name'>
-                      <p>UserName</p>
-                      <li>r/Username</li>
+                      <p>Anonimo</p>
+                      <li>Debajo se muestran las publicaciones del subreddit elegido</li>
                     </div>
                   </div>
                 </div>
@@ -120,15 +104,7 @@ function App() {
                       <ul>
                         <li>
                           <i className='fa-brands fa-hotjar'></i>
-                          <a href='#'>Hot</a>
-                        </li>
-                        <li>
-                          <i className='fa-solid fa-certificate'></i>
-                          <a href='#'>New</a>
-                        </li>
-                        <li>
-                          <i className='fa-sharp fa-solid fa-ranking-star'></i>
-                          <a href='#'>Top</a>
+                          <a href='#'>POSTS</a>
                         </li>
                         <li>
                           <a href='#'>. . .</a>
@@ -207,47 +183,14 @@ function App() {
             <aside>
               <div className='Cont-Right'>
                 <div className='Community'>
-                  <div className='InfoCommunity'>
-                    <p>
-                      About Community<a href=''>. . .</a>
-                    </p>
-                    <li>
-                      <span>If an ant found a Bloomberg terminal.</span>
-                    </li>
-                    <li>
-                      <i className='fa-solid fa-square-plus'></i>Create May 05, 2022
-                    </li>
-                    <div className='linea'></div>
+                  <div className='linea2'>
                   </div>
-                  <div className='Users'>
-                    <div className='Members'>
-                      <p>7.1k</p>
-                      <li>Members</li>
-                    </div>
-                    <div className='Online'>
-                      <li>
-                        <i className='fa-solid fa-circle'></i>
-                        <span>7</span>
-                      </li>
-                      <li>Online</li>
-                    </div>
-                  </div>
-                  <div className='linea2'></div>
-
                   <div className='CreatePost'>
                     <button className='Button-Post' role='button' onClick={clearPosts}>
-                      CREATE POST
+                      Search new Filtered Subreddit
                     </button>
                   </div>
                   <div className='linea3'></div>
-                  <div className='Options'>
-                    <ul>
-                      <li>
-                        <i className='fa-solid fa-list'></i>
-                        <a href='#'>Community options</a>
-                      </li>
-                    </ul>
-                  </div>
                 </div>
 
                 <div className='Moderator'></div>

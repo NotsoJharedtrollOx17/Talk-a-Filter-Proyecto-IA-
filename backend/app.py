@@ -10,7 +10,7 @@ import csv
 SPACY_LANGUAGE_MODEL = "en_core_web_sm"
 DATASET = "./data/data-files/csv/bad-words.csv"
 OPENAI_WORKAROUND_API_MODEL = "gpt-3.5-turbo"
-CONTENT_LIMIT = 2
+CONTENT_LIMIT = 5
 
 #Flask app entry point
 app = Flask(__name__)
