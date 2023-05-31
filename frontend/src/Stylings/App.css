@@ -10,7 +10,7 @@
 }
 
 body{
-  background-color: rgb(21, 21, 20);
+  background-color: rgb(231, 231, 231);
   min-height: 100%;
   min-width: 100%;
 }
@@ -682,6 +682,7 @@ aside{
 	-webkit-border-radius: 0 0 4px 4px;
 	-moz-border-radius: 0 0 4px 4px;
 	border-radius: 0 0 4px 4px;
+  word-wrap: break-word; /* Add this line */
 }
 
 .comment-box .comment-name.by-author, .comment-box .comment-name.by-author a {color: rgb(187, 187, 187);}

@@ -61,10 +61,9 @@ def filter_text(text):
 def familyfriendly_text(text):
     prompt = f"Please rewrite the following text to not include any foul language:\n\n{text}\n\nCensored text:"
     response = you.Completion.create(
-        prompt = prompt,
-        messages = []
+        prompt = prompt
     )
-    censored_text = response["reponse"]
+    censored_text = response.text
     return censored_text
 
 def filter_post(post):
